@@ -1,0 +1,10 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app
+#        - src
+
+    # Уровень строгости: 0–9 (чем выше, тем строже)
+    level: 5

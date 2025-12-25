@@ -1,0 +1,61 @@
+deptrac:
+  paths:
+    - app
+    - src
+
+  exclude_files:
+    - '#^vendor/.*#'
+
+  layers:
+    # Domain Layer - pure business logic
+    - name: Domain
+      collectors:
+        - type: directory
+          value: src/Domain/.*
+
+    # Application Layer - use cases, application services
+    - name: Application
+      collectors:
+        - type: directory
+          value: src/Application/.*
+
+    # Catch-all for files directly in src/ (should not exist)
+    - name: SrcRoot
+      collectors:
+        - type: directory
+          value: src/[^/]+\.php$
+          regex: true
+
+    # Infrastructure Layer - Laravel, database, external services
+    - name: Infrastructure
+      collectors:
+        - type: directory
+          value: app/.*
+
+    # Laravel Framework (Illuminate + Laravel packages)
+    - name: LaravelFramework
+      collectors:
+        - type: classNameRegex
+          value: '#^Illuminate\\.*#'
+        - type: classNameRegex
+          value: '#^Laravel\\.*#'
+
+  ruleset:
+    # Domain has no dependencies
+    Domain: []
+
+    # Application can only depend on Domain
+    Application:
+      - Domain
+
+    # SrcRoot should not use anything (red flag)
+    SrcRoot: []
+
+    # Infrastructure can depend on Application, Domain and Laravel
+    Infrastructure:
+      - Application
+      - Domain
+      - LaravelFramework
+
+    # Laravel can only be used by Infrastructure
+    LaravelFramework: []
