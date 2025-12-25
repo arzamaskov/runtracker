@@ -1,0 +1,71 @@
+# === OS / Common trash ===
+*.log
+.DS_Store
+Thumbs.db
+.cache/
+
+# === PHP / QA tooling caches ===
+.phpactor.json
+.phpunit.result.cache
+.phpunit.cache/
+.php-cs-fixer.cache
+.phpstan/cache/
+junit.xml
+coverage/
+clover.xml
+.deptrac.cache
+
+# === Environment & secrets ===
+.env
+.env.*
+!.env.example
+auth.json
+/storage/*.key
+/storage/pail
+
+# === IDE / Editors ===
+.idea/
+.vscode/
+.fleet/
+.nova/
+.zed/
+.cursor/
+*.swp
+*.swo
+*~
+
+# === Dependencies ===
+/vendor/
+/node_modules/
+/.pnpm-store/
+
+# === Laravel build/runtime artifacts ===
+/public/build/
+/public/hot/
+/public/storage/
+/bootstrap/cache/*.php
+!/bootstrap/cache/.gitignore
+/public/hot
+/public/storage
+/bootstrap/cache/packages
+/bootstrap/cache/services
+/.vagrant
+
+# === Docker / Sail (локальные переопределения) ===
+docker-compose.override.yml
+# Production compose (хранится только на сервере)
+docker-compose.prod.yml
+
+# === Homestead ===
+Homestead.json
+Homestead.yaml
+
+# === Logs ===
+npm-debug.log
+yarn-error.log
+
+# === Backups ===
+/backups/
+*.sql
+*.sql.gz
+*_backup.tar.gz
