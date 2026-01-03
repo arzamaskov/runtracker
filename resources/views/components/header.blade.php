@@ -24,24 +24,24 @@
 
         {{-- Desktop Auth Buttons --}}
         <div class="hidden md:flex items-center gap-4">
-            <a href="#login" class="border border-primary text-primary hover:bg-secondary px-4 py-2 rounded-lg">
+            <button data-open-modal="login-modal" class="border border-primary text-primary hover:bg-secondary px-4 py-2 rounded-lg">
                 Войти
-            </a>
-            <a href="#register" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all duration-300 ease-out">
+            </button>
+            <button data-open-modal="register-modal" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all duration-300 ease-out">
                 Регистрация
-            </a>
+            </button>
         </div>
     </div>
 
     {{-- Mobile Auth Buttons --}}
     <div id="mobile-menu" class="hidden md:hidden border-t border-border">
         <div class="container py-4 flex flex-col gap-3">
-            <a href="#login" class="text-center border border-primary text-primary hover:bg-secondary px-4 py-2 rounded-lg">
+            <button data-open-modal="login-modal" class="text-center border border-primary text-primary hover:bg-secondary px-4 py-2 rounded-lg">
                 Войти
-            </a>
-            <a href="#register" class="text-center bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg">
+            </button>
+            <button data-open-modal="register-modal" class="text-center bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg">
                 Регистрация
-            </a>
+            </button>
         </div>
     </div>
 
