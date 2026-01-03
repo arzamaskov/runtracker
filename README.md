@@ -29,39 +29,25 @@
 
 - PHP 8.4+
 - Composer
-- Node.js 20+
-- npm
+- Node.js 24+
+- pnpm
 
-### Локальная разработка
+### Локальная разработка (Docker)
 
 ```bash
-# Клонировать репозиторий
 git clone https://github.com/arzamaskov/runtracker.git
 cd runtracker
-
-# Установить зависимости
-composer install
-npm install
-
-# Настроить окружение
-cp .env.example .env
-php artisan key:generate
-
-# Создать базу данных
-touch database/database.sqlite
-php artisan migrate
-
-# Запустить
-npm run dev
-php artisan serve
+make install
 ```
 
 Приложение будет доступно по адресу http://localhost:8000
 
-### Docker
-
 ```bash
+# Запуск (после установки)
 make up
+
+# Остановка
+make down
 ```
 
 ## Self-hosted
