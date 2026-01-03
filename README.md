@@ -40,7 +40,7 @@ cd runtracker
 make install
 ```
 
-Приложение будет доступно по адресу http://localhost:8000
+Приложение будет доступно по адресу http://localhost/
 
 ```bash
 # Запуск (после установки)
