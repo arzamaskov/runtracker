@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Identity\Web\LoginController;
+use App\Http\Controllers\Identity\Web\LogoutController;
 use App\Http\Controllers\Identity\Web\RegisterController;
 use App\Http\Controllers\Identity\Web\ShowLoginFormController;
 use App\Http\Controllers\Identity\Web\ShowRegisterFormController;
@@ -19,7 +20,29 @@ Route::middleware('guest')->group(function () {
 
 // Authenticated routes
 Route::middleware('auth')->group(function () {
+    Route::post('/logout', LogoutController::class)->name('identity.logout');
+
     Route::get('/dashboard', function () {
-        return view('dashboard');
+        return view('dashboard.overview');
     })->name('dashboard');
+
+    Route::get('/dashboard/activities', function () {
+        return view('dashboard.activities');
+    })->name('dashboard.activities');
+
+    Route::get('/dashboard/stats', function () {
+        return view('dashboard.stats');
+    })->name('dashboard.stats');
+
+    Route::get('/dashboard/comparison', function () {
+        return view('dashboard.comparison');
+    })->name('dashboard.comparison');
+
+    Route::get('/dashboard/goals', function () {
+        return view('dashboard.goals');
+    })->name('dashboard.goals');
+
+    Route::get('/dashboard/settings', function () {
+        return view('dashboard.settings');
+    })->name('dashboard.settings');
 });
