@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use RunTracker\Application\Identity\Exception\UserAlreadyExistsException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,5 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->renderable(function (UserAlreadyExistsException $e) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['email' => 'Пользователь с таким email уже существует.']);
+        });
     })->create();
