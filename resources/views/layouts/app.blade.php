@@ -27,7 +27,5 @@
     </head>
     <body>
         @yield('content')
-        <x-login-modal />
-        <x-register-modal />
     </body>
 </html>

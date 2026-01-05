@@ -19,7 +19,7 @@
                         Когда встроенного приложения часов уже мало, а профессиональные платформы пугают — есть середина. Ваши тренировки, понятная статистика, ничего лишнего.
                     </p>
                     <div class="flex flex-col sm:flex-row gap-4">
-                        <a href="#register" class="bg-primary hover:bg-primary/90 text-white h-12 px-8 text-base rounded-lg inline-flex items-center justify-center hover:shadow-lg hover:scale-105 transition-all duration-300 ease-out">
+                        <a href="{{ route('identity.register') }}" class="bg-primary hover:bg-primary/90 text-white h-12 px-8 text-base rounded-lg inline-flex items-center justify-center hover:shadow-lg hover:scale-105 transition-all duration-300 ease-out">
                             Попробовать
                         </a>
                     </div>
@@ -184,7 +184,7 @@
             <p class="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
                 Пользуйтесь готовым сервисом или разверните у себя — код открыт.
             </p>
-            <a href="#register" class="bg-primary hover:bg-primary/90 text-white h-12 px-8 text-base rounded-lg inline-flex items-center justify-center hover:shadow-lg hover:scale-105 transition-all duration-300 ease-out">
+            <a href="{{ route('identity.register') }}" class="bg-primary hover:bg-primary/90 text-white h-12 px-8 text-base rounded-lg inline-flex items-center justify-center hover:shadow-lg hover:scale-105 transition-all duration-300 ease-out">
                 Начать
             </a>
         </div>

@@ -3,7 +3,7 @@
 @section('title', 'Регистрация — Runtracker')
 
 @section('content')
-    <div class="min-h-screen flex items-center justify-center p-4">
+    <div class="min-h-screen flex items-start md:items-center justify-center p-4 pt-16 md:pt-4">
         <div class="bg-background rounded-2xl shadow-2xl w-full max-w-md">
             {{-- Header --}}
             <div class="p-6 border-b border-border">
@@ -97,8 +97,10 @@
                     {{-- Switch to login --}}
                     <p class="text-sm text-center text-muted-foreground">
                         Уже есть аккаунт?
-                        <a href="#" class="text-primary hover:underline">Войти</a>
+                        <a href="{{ route('identity.login') }}" class="text-primary hover:underline">Войти</a>
                     </p>
+
+                    <a href="/" class="text-primary hover:underline">← На главную</a>
                 </form>
             </div>
         </div>
