@@ -8,6 +8,10 @@ on:
         required: false
         default: 'latest'
         type: string
+  push:
+    tags:
+      - 'v*'
+
 
 jobs:
   deploy-production:
@@ -16,23 +20,21 @@ jobs:
     environment:
       name: production
       url: https://runtracker.ru
-    if: github.ref == 'refs/heads/main'
 
     steps:
-      - name: Setup SSH agent
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: Add server to known hosts
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -p ${{ secrets.SSH_PORT || 22 }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
-
       - name: Deploy to production
-        run: |
-          ssh -p ${{ secrets.SSH_PORT || 22 }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-            set -e
+        uses: appleboy/ssh-action@v1.2.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          port: ${{ secrets.SSH_PORT }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          command_timeout: 15m
+          envs: GITHUB_TOKEN
+          script: |
+            set -euo pipefail
 
             REPO_URL="https://github.com/arzamaskov/runtracker.git"
             DEPLOY_DIR="/opt/run-app"
@@ -40,31 +42,31 @@ jobs:
             # Backup app.env if exists
             if [ -f "$DEPLOY_DIR/app.env" ]; then
               echo "Backing up app.env..."
-              cp $DEPLOY_DIR/app.env /tmp/app.env.backup
+              cp "$DEPLOY_DIR/app.env" /tmp/app.env.backup
             fi
 
             # Clone or pull repository
             if [ -d "$DEPLOY_DIR/.git" ]; then
               echo "Updating repository..."
-              cd $DEPLOY_DIR
+              cd "$DEPLOY_DIR"
               git fetch origin main
               git reset --hard origin/main
             else
               echo "Cloning repository..."
-              git clone --depth 1 $REPO_URL $DEPLOY_DIR
-              cd $DEPLOY_DIR
+              git clone --depth 1 "$REPO_URL" "$DEPLOY_DIR"
+              cd "$DEPLOY_DIR"
             fi
 
             # Restore app.env
             if [ -f "/tmp/app.env.backup" ]; then
               echo "Restoring app.env..."
-              cp /tmp/app.env.backup $DEPLOY_DIR/app.env
+              cp /tmp/app.env.backup "$DEPLOY_DIR/app.env"
               rm /tmp/app.env.backup
             fi
 
             # Determine version to deploy
             VERSION="${{ github.event.inputs.version }}"
-            if [ "$VERSION" = "latest" ]; then
+            if [ "$VERSION" = "latest" ] || [ -z "$VERSION" ]; then
               APP_TAG="app-latest"
             else
               APP_TAG="app-$VERSION"
@@ -73,18 +75,16 @@ jobs:
             echo "Deploying version: $VERSION (APP_TAG=$APP_TAG)"
 
             # Login to GitHub Container Registry
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            echo "$GITHUB_TOKEN" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            # Pull images using specified version
+            # Pull and restart
             IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/runtracker" APP_TAG="$APP_TAG" docker compose -f docker-compose.production.yml pull
-
-            # Restart services
             IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/runtracker" APP_TAG="$APP_TAG" docker compose -f docker-compose.production.yml up -d --remove-orphans
 
             # Copy frontend assets from container to host for nginx
             rm -rf ./public/build && docker compose -f docker-compose.production.yml cp php-fpm:/var/www/html/public/build ./public/
 
-            # Wait for services to be ready
+            # Wait for services
             sleep 5
 
             # Maintenance and optimizations
@@ -98,11 +98,10 @@ jobs:
             docker compose -f docker-compose.production.yml exec -T php-fpm php artisan storage:link || true
             docker compose -f docker-compose.production.yml exec -T php-fpm php artisan up
 
-            # Clean up old images
+            # Clean up
             docker image prune -f
 
             echo "Deployment completed successfully!"
-          EOF
 
       - name: Health check
         run: |
