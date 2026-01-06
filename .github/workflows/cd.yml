@@ -8,6 +8,10 @@ on:
         required: false
         default: 'latest'
         type: string
+  push:
+    tags:
+      - 'v*'
+
 
 jobs:
   deploy-production:
@@ -16,7 +20,6 @@ jobs:
     environment:
       name: production
       url: https://runtracker.ru
-    if: github.ref == 'refs/heads/main'
 
     steps:
       - name: Deploy to production
