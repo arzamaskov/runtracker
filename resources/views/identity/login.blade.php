@@ -32,9 +32,11 @@
                             placeholder="your@email.com"
                             class="w-full h-11 px-3 bg-secondary border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary {{ $errors->has('email') ? 'border-red-500' : 'border-border' }}"
                         >
-                        @error('email')
-                        <p class="text-sm text-red-500">{{ $message }}</p>
-                        @enderror
+                        <div class="h-5">
+                            @error('email')
+                            <p class="text-sm text-red-500">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
 
                     {{-- Password --}}
@@ -53,9 +55,24 @@
                             placeholder="Ваш пароль"
                             class="w-full h-11 px-3 bg-secondary border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary {{ $errors->has('password') ? 'border-red-500' : 'border-border' }}"
                         >
-                        @error('password')
-                        <p class="text-sm text-red-500">{{ $message }}</p>
-                        @enderror
+                        <div class="h-5">
+                            @error('password')
+                            <p class="text-sm text-red-500">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+
+                    {{-- Remember me --}}
+                    <div class="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            id="remember"
+                            name="remember"
+                            class="w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                        >
+                        <label for="remember" class="text-sm text-muted-foreground">
+                            Запомнить меня
+                        </label>
                     </div>
 
                     {{-- Submit --}}

@@ -26,7 +26,7 @@ final readonly class LoginController
                 )
             );
 
-            Auth::loginUsingId($user->id()->value());
+            Auth::loginUsingId($user->id()->value(), $request->boolean('remember'));
 
             return redirect()->route('dashboard');
         } catch (InvalidCredentialsException $e) {

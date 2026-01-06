@@ -12,18 +12,45 @@
     $initials = strtoupper(substr($user->email, 0, 2));
 @endphp
 
-<aside class="hidden md:flex w-64 bg-gradient-to-b from-slate-900 to-slate-950 border-r border-slate-800 flex-col">
-    {{-- Logo --}}
-    <div class="p-6 border-b border-slate-800">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                <span class="text-white font-bold text-lg">R</span>
-            </div>
-            <div>
-                <h1 class="text-white font-bold text-lg">Runtracker</h1>
-                <p class="text-xs text-slate-400">Dashboard</p>
-            </div>
-        </div>
+{{-- Mobile Menu Button --}}
+<button
+    id="sidebar-toggle"
+    class="md:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-md hover:bg-slate-100 transition-colors"
+    aria-label="Открыть меню"
+>
+    <svg id="menu-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="4" x2="20" y1="12" y2="12"/>
+        <line x1="4" x2="20" y1="6" y2="6"/>
+        <line x1="4" x2="20" y1="18" y2="18"/>
+    </svg>
+</button>
+
+{{-- Overlay --}}
+<div
+    id="sidebar-overlay"
+    class="fixed inset-0 bg-black/50 z-30 md:hidden hidden"
+></div>
+
+{{-- Sidebar --}}
+<aside
+    id="sidebar"
+    class="fixed md:relative left-0 top-0 h-screen w-64 bg-gradient-to-b from-slate-900 to-slate-950 border-r border-slate-800 flex flex-col z-40 transition-transform duration-300 -translate-x-full md:translate-x-0"
+>
+    {{-- Header: Close button + Logo --}}
+    <div class="p-6 border-b border-slate-800 flex items-center gap-4">
+        {{-- Close button (mobile only) --}}
+        <button
+            id="sidebar-close"
+            class="md:hidden p-2 -ml-2 text-slate-400 hover:text-white transition-colors"
+            aria-label="Закрыть меню"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 6 6 18"/>
+                <path d="m6 6 12 12"/>
+            </svg>
+        </button>
+        {{-- Logo --}}
+        <span class="font-bold text-xl font-display"><span class="text-primary">RUN</span><span class="text-white">TRACKER</span></span>
     </div>
 
     {{-- Navigation --}}
