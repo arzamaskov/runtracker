@@ -81,6 +81,9 @@ jobs:
             # Restart services
             IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/runtracker" APP_TAG="$APP_TAG" docker compose -f docker-compose.production.yml up -d --remove-orphans
 
+            # Copy frontend assets from container to host for nginx
+            docker compose -f docker-compose.production.yml cp php-fpm:/var/www/html/public/build ./public/
+
             # Wait for services to be ready
             sleep 5
 
