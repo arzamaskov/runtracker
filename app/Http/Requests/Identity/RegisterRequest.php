@@ -16,6 +16,18 @@ final class RegisterRequest extends FormRequest
         return [
             'email' => ['required', 'email'],
             'password' => ['required', 'min:8', 'confirmed'],
+            'password_confirmation' => ['required'],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'password.confirmed' => 'Пароли не совпадают',
+            'password_confirmation.required' => 'Подтвердите пароль',
         ];
     }
 }

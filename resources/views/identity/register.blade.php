@@ -32,9 +32,11 @@
                             placeholder="your@email.com"
                             class="w-full h-11 px-3 bg-secondary border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary {{ $errors->has('email') ? 'border-red-500' : 'border-border' }}"
                         >
-                        @error('email')
-                        <p class="text-sm text-red-500">{{ $message }}</p>
-                        @enderror
+                        <div class="h-5">
+                            @error('email')
+                            <p class="text-sm text-red-500">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
 
                     {{-- Password --}}
@@ -53,9 +55,11 @@
                             placeholder="Минимум 8 символов"
                             class="w-full h-11 px-3 bg-secondary border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary {{ $errors->has('password') ? 'border-red-500' : 'border-border' }}"
                         >
-                        @error('password')
-                        <p class="text-sm text-red-500">{{ $message }}</p>
-                        @enderror
+                        <div class="h-5">
+                            @error('password')
+                            <p class="text-sm text-red-500">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
 
                     {{-- Confirm Password --}}
@@ -74,6 +78,11 @@
                             placeholder="Повторите пароль"
                             class="w-full h-11 px-3 bg-secondary border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary {{ $errors->has('password_confirmation') ? 'border-red-500' : 'border-border' }}"
                         >
+                        <div class="h-5">
+                            @error('password_confirmation')
+                            <p class="text-sm text-red-500">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
 
                     {{-- Submit --}}
