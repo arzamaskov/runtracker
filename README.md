@@ -1,4 +1,5 @@
-[![CI](https://github.com/arzamaskov/runtracker/actions/workflows/ci.yml/badge.svg)](https://github.com/arzamaskov/runtracker/actions/workflows/ci.yml)
+[![Lint](https://github.com/arzamaskov/runtracker/actions/workflows/lint.yml/badge.svg)](https://github.com/arzamaskov/runtracker/actions/workflows/lint.yml)
+[![Test](https://github.com/arzamaskov/runtracker/actions/workflows/test.yml/badge.svg)](https://github.com/arzamaskov/runtracker/actions/workflows/test.yml)
 [![GitHub release](https://img.shields.io/github/v/release/arzamaskov/runtracker)](https://github.com/arzamaskov/runtracker/releases)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![PHP](https://img.shields.io/badge/PHP-8.4-777BB4.svg)](https://www.php.net/)
