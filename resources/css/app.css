@@ -46,40 +46,64 @@
 }
 
 :root {
+  /* Primary colors */
   --primary: #0066CC;
   --primary-foreground: #FFFFFF;
   --sidebar-primary: #0052A3;
   --sidebar-primary-foreground: #FFFFFF;
-  --chart-1: #B3D9FF;
-  --chart-2: #4D94FF;
-  --chart-3: #0066CC;
-  --chart-4: #0052A3;
-  --chart-5: #003D7A;
 
-  --radius: 0.75rem;
+  /* Chart colors - Garmin style */
+  --chart-1: #00B4D8;  /* Cyan - primary metric */
+  --chart-2: #0077B6;  /* Blue - secondary metric */
+  --chart-3: #FF6B35;  /* Orange - calories/effort */
+  --chart-4: #DC2626;  /* Red - heart rate */
+  --chart-5: #10B981;  /* Green - positive/success */
+  --chart-blue: #00B4D8;
+  --chart-cyan: #00D4AA;
+  --chart-orange: #FF9500;
+  --chart-red: #FF3B30;
+  --chart-green: #34C759;
+  --chart-purple: #AF52DE;
+  --chart-gray: #8E8E93;
+
+  /* Layout */
+  --radius: 0.5rem;  /* Smaller radius for cleaner look */
+  --radius-card: 0.75rem;
+
+  /* Base colors */
   --background: #FFFFFF;
   --foreground: #1A1A1A;
-  --card: #F5F5F5;
+  --card: #FFFFFF;
   --card-foreground: #1A1A1A;
   --popover: #FFFFFF;
   --popover-foreground: #1A1A1A;
-  --secondary: #E8F0FF;
+  --secondary: #F8FAFC;
   --secondary-foreground: #0052A3;
-  --muted: #D9D9D9;
-  --muted-foreground: #666666;
+  --muted: #F1F5F9;
+  --muted-foreground: #64748B;
   --accent: #0066CC;
   --accent-foreground: #FFFFFF;
   --destructive: #DC2626;
   --destructive-foreground: #FFFFFF;
-  --border: #E5E5E5;
-  --input: #F5F5F5;
+
+  /* Borders - lighter for cleaner look */
+  --border: #E2E8F0;
+  --border-light: #F1F5F9;
+  --input: #F8FAFC;
   --ring: #0066CC;
+
+  /* Sidebar */
   --sidebar: #FFFFFF;
   --sidebar-foreground: #1A1A1A;
   --sidebar-accent: #E8F0FF;
   --sidebar-accent-foreground: #0052A3;
-  --sidebar-border: #E5E5E5;
+  --sidebar-border: #E2E8F0;
   --sidebar-ring: #0066CC;
+
+  /* Dashboard specific */
+  --dashboard-bg: #F8FAFC;
+  --card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05);
+  --card-shadow-hover: 0 4px 6px -1px rgb(0 0 0 / 0.07);
 }
 
 @layer base {
@@ -205,5 +229,60 @@
   /* Text gradient */
   .text-gradient {
     @apply bg-gradient-to-r from-primary to-primary bg-clip-text text-transparent;
+  }
+
+  /* Dashboard card - clean, minimal style */
+  .dashboard-card {
+    @apply bg-white rounded-xl border border-border;
+    box-shadow: var(--card-shadow);
+    transition: box-shadow 0.2s ease;
+  }
+
+  .dashboard-card:hover {
+    box-shadow: var(--card-shadow-hover);
+  }
+
+  /* Metric value - large numbers */
+  .metric-value {
+    @apply text-3xl md:text-4xl font-bold tracking-tight;
+    font-family: 'Geist', sans-serif;
+  }
+
+  .metric-value-sm {
+    @apply text-2xl font-bold tracking-tight;
+    font-family: 'Geist', sans-serif;
+  }
+
+  /* Metric label - subtle text */
+  .metric-label {
+    @apply text-sm text-muted-foreground font-medium;
+  }
+
+  /* Metric unit - smaller text after value */
+  .metric-unit {
+    @apply text-base font-normal text-muted-foreground ml-1;
+  }
+
+  /* Info icon button */
+  .info-icon {
+    @apply w-5 h-5 text-primary/60 hover:text-primary cursor-help transition-colors;
+  }
+
+  /* Divider - thin line */
+  .divider {
+    @apply border-t border-border-light;
+  }
+
+  /* Stat row - label and value inline */
+  .stat-row {
+    @apply flex items-center justify-between py-3 border-b border-border-light last:border-0;
+  }
+
+  .stat-row-label {
+    @apply text-sm text-muted-foreground;
+  }
+
+  .stat-row-value {
+    @apply text-sm font-semibold text-foreground;
   }
 }
