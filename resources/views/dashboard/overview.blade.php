@@ -7,7 +7,7 @@
 @section('content')
     <div class="space-y-6">
         {{-- Metric Cards Grid --}}
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
             <x-dashboard.metric-card
                 label="Тренировок"
                 value="—"
@@ -37,26 +37,30 @@
         </div>
 
         {{-- Weekly Activity Section --}}
-        <x-dashboard.section-card title="Активность за неделю">
+        <section>
+            <h3 class="text-lg font-semibold text-foreground mb-4">Активность за неделю</h3>
             <div class="h-48 flex items-center justify-center">
                 <p class="text-muted-foreground text-sm">Здесь будет график активности</p>
             </div>
-        </x-dashboard.section-card>
+        </section>
+
+        <hr class="border-border">
 
         {{-- Recent Activities Section --}}
-        <x-dashboard.section-card
-            title="Последние тренировки"
-            subtitle="За последние 7 дней"
-        >
-            <x-slot:action>
+        <section>
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-lg font-semibold text-foreground">Последние тренировки</h3>
+                    <p class="text-sm text-muted-foreground mt-0.5">За последние 7 дней</p>
+                </div>
                 <a href="{{ route('dashboard.activities') }}" class="text-sm text-primary hover:underline">
                     Все активности
                 </a>
-            </x-slot:action>
+            </div>
 
             <div class="text-center py-8">
                 <p class="text-muted-foreground text-sm">Нет тренировок за этот период</p>
             </div>
-        </x-dashboard.section-card>
+        </section>
     </div>
 @endsection

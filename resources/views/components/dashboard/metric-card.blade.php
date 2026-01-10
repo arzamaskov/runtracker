@@ -21,8 +21,8 @@
     $valueColor = $colorClasses[$color] ?? $colorClasses['primary'];
 @endphp
 
-<div class="dashboard-card p-5">
-    <div class="flex items-start justify-between mb-3">
+<div class="py-4">
+    <div class="flex items-start justify-between mb-2">
         <span class="metric-label">{{ $label }}</span>
         @if($info)
             <x-dashboard.info-tooltip :text="$info" />
@@ -42,7 +42,7 @@
     </div>
 
     @if($slot->isNotEmpty())
-        <div class="mt-3 pt-3 border-t border-border-light">
+        <div class="mt-3 pt-3 border-t border-border">
             {{ $slot }}
         </div>
     @endif

@@ -19,8 +19,8 @@
     $iconPath = $icons[$icon] ?? $icons['activity'];
 @endphp
 
-<div class="dashboard-card">
-    <div class="text-center py-12 px-6">
+<div>
+    <div class="text-center py-16 px-6">
         <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
             <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -50,18 +50,14 @@
             @if($actionUrl && !$actionDisabled)
                 <a
                     href="{{ $actionUrl }}"
-                    class="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-lg font-medium transition-colors"
+                    class="inline-flex items-center gap-2 text-sm bg-muted hover:bg-slate-200 text-foreground px-3 py-1.5 rounded-md font-medium border border-slate-300 transition-colors"
                 >
                     {{ $actionText }}
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M5 12h14"/>
-                        <path d="m12 5 7 7-7 7"/>
-                    </svg>
                 </a>
             @else
                 <button
                     type="button"
-                    class="inline-flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-lg font-medium transition-colors {{ $actionDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary/90' }}"
+                    class="inline-flex items-center gap-2 text-sm bg-muted hover:bg-slate-200 text-foreground px-3 py-1.5 rounded-md font-medium border border-slate-300 transition-colors {{ $actionDisabled ? 'opacity-50 cursor-not-allowed' : '' }}"
                     {{ $actionDisabled ? 'disabled' : '' }}
                 >
                     {{ $actionText }}
@@ -69,4 +65,4 @@
             @endif
         @endif
     </div>
-</div>
+

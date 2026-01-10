@@ -6,7 +6,7 @@
     <title>@yield('title', 'Dashboard — Runtracker')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/dashboard.js'])
 </head>
-<body class="bg-[var(--dashboard-bg)]">
+<body class="bg-white">
 <div class="flex h-screen">
     {{-- Sidebar --}}
     <x-dashboard.sidebar />

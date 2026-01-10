@@ -5,7 +5,7 @@
     'padding' => true,
 ])
 
-<div {{ $attributes->merge(['class' => 'dashboard-card']) }}>
+<div {{ $attributes->merge(['class' => 'pt-6']) }}>
     @if($title || $action)
         <div class="flex items-center justify-between p-5 {{ $slot->isNotEmpty() ? 'border-b border-border-light' : '' }}">
             <div>
