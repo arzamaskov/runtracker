@@ -83,6 +83,26 @@ jobs:
 
             echo "Deploying version: $VERSION (APP_TAG=$APP_TAG)"
 
+            session_driver="$(grep '^SESSION_DRIVER=' "$DEPLOY_DIR/app.env" | cut -d= -f2- || true)"
+            cache_store="$(grep '^CACHE_STORE=' "$DEPLOY_DIR/app.env" | cut -d= -f2- || true)"
+            queue_connection="$(grep '^QUEUE_CONNECTION=' "$DEPLOY_DIR/app.env" | cut -d= -f2- || true)"
+            redis_host="$(grep '^REDIS_HOST=' "$DEPLOY_DIR/app.env" | cut -d= -f2- || true)"
+
+            uses_redis_backend="false"
+            if [ "$session_driver" = "redis" ] || [ "$cache_store" = "redis" ] || [ "$queue_connection" = "redis" ]; then
+              uses_redis_backend="true"
+            fi
+
+            if [ "$uses_redis_backend" = "true" ] && [ "$redis_host" = "redis" ]; then
+              echo "app.env still points Redis-backed services to the removed docker service 'redis'."
+              echo "Update /opt/run-app/app.env before deploying:"
+              echo "  SESSION_DRIVER=database"
+              echo "  CACHE_STORE=database"
+              echo "  QUEUE_CONNECTION=database"
+              echo "  REDIS_HOST=127.0.0.1"
+              exit 1
+            fi
+
             mkdir -p "$DEPLOY_DIR/database" "$DEPLOY_DIR/storage"
             touch "$DEPLOY_DIR/database/database.sqlite"
 
