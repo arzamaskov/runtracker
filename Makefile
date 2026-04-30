@@ -1,6 +1,5 @@
 .PHONY: help build up down restart logs shell composer pnpm artisan migrate seed test \
-        lint stan psql backup-db restore-db test-db-create test-db-drop ci permissions \
-        clean install fresh-install volumes ps info tinker
+        lint ci permissions clean install fresh-install volumes ps info tinker sqlite-init
 .DEFAULT_GOAL := help
 
 # =============================================================================
@@ -22,10 +21,6 @@ DC := docker compose
 DC_EXEC := $(DC) exec $(EXEC_USER)
 DC_EXEC_ROOT := $(DC) exec -u root
 
-# Database
-DB_USERNAME := laravel
-DB_DATABASE := runtracker
-DB_DATABASE_TEST := $(DB_DATABASE)_test
 PROJECT := $(shell basename "$(CURDIR)" | tr '[:upper:]' '[:lower:]')
 
 # =============================================================================
@@ -45,6 +40,10 @@ build: ## Build Docker images
 
 up: ## Start all containers
 	$(DC) up -d
+
+sqlite-init: ## Create SQLite database file for local Docker environment
+	@mkdir -p ./database
+	@touch ./database/database.sqlite
 
 down: ## Stop all containers
 	$(DC) down
@@ -74,24 +73,8 @@ logs-php: ## Show PHP logs
 logs-nginx: ## Show Nginx logs
 	$(DC) logs -f nginx
 
-logs-redis: ## Show Redis logs
-	$(DC) logs -f redis
-
 logs-node: ## Show Node logs
 	$(DC) logs -f node
-
-# =============================================================================
-# Service connections
-# =============================================================================
-
-psql: ## Connect to PostgreSQL console
-	$(DC) exec postgres psql -U $(DB_USERNAME) -d $(DB_DATABASE)
-
-psql-root: ## Connect to PostgreSQL as superuser
-	$(DC) exec postgres psql -U postgres
-
-redis-cli: ## Connect to Redis console
-	$(DC) exec redis redis-cli
 
 # =============================================================================
 # Composer
@@ -117,16 +100,16 @@ composer-dump: ## Regenerate autoload files
 # =============================================================================
 
 pnpm: ## Run PNPM command (make pnpm CMD="install")
-	$(DC) exec node sh -lc 'corepack enable && pnpm $(CMD)'
+	$(DC) exec node sh -lc 'corepack enable && corepack prepare pnpm@9 --activate && pnpm $(CMD)'
 
 pnpm-install: ## Install Node dependencies
-	$(DC) exec node sh -lc 'corepack enable && pnpm install'
+	$(DC) exec node sh -lc 'corepack enable && corepack prepare pnpm@9 --activate && pnpm install --frozen-lockfile'
 
 pnpm-dev: ## Start Vite dev server
-	$(DC) exec node sh -lc 'corepack enable && pnpm run dev'
+	$(DC) exec node sh -lc 'corepack enable && corepack prepare pnpm@9 --activate && pnpm run dev'
 
 pnpm-build: ## Build production assets
-	$(DC) exec node sh -lc 'corepack enable && pnpm run build'
+	$(DC) exec node sh -lc 'corepack enable && corepack prepare pnpm@9 --activate && pnpm run build'
 
 # =============================================================================
 # Artisan
@@ -143,15 +126,18 @@ tinker: ## Start Tinker REPL
 # =============================================================================
 
 migrate: ## Run migrations
+	@$(MAKE) sqlite-init
 	$(DC_EXEC) php-fpm php artisan migrate
 
 migrate-rollback: ## Rollback last migration
 	$(DC_EXEC) php-fpm php artisan migrate:rollback
 
 migrate-fresh: ## Drop all tables and re-run migrations
+	@$(MAKE) sqlite-init
 	$(DC_EXEC) php-fpm php artisan migrate:fresh
 
 migrate-fresh-seed: ## Drop all tables, re-run migrations and seeders
+	@$(MAKE) sqlite-init
 	$(DC_EXEC) php-fpm php artisan migrate:fresh --seed
 
 seed: ## Run seeders
@@ -162,30 +148,16 @@ seed: ## Run seeders
 # =============================================================================
 
 test: ## Run tests
+	@$(MAKE) sqlite-init
 	$(DC_EXEC) php-fpm php artisan test
 
 test-coverage: ## Run tests with coverage
+	@$(MAKE) sqlite-init
 	$(DC_EXEC) php-fpm php artisan test --coverage
 
 test-filter: ## Run specific test (make test-filter FILTER="TestName")
+	@$(MAKE) sqlite-init
 	$(DC_EXEC) php-fpm php artisan test --filter=$(FILTER)
-
-test-db-create: ## Create test database
-	@echo "$(GREEN)Creating test database...$(NC)"
-	$(DC) exec postgres psql -U $(DB_USERNAME) -d postgres -c "CREATE DATABASE $(DB_DATABASE_TEST);" || echo "Database already exists"
-	@echo "$(GREEN)Test database created$(NC)"
-
-test-db-drop: ## Drop test database
-	@echo "$(YELLOW)Dropping test database...$(NC)"
-	$(DC) exec postgres psql -U $(DB_USERNAME) -d postgres -c "DROP DATABASE IF EXISTS $(DB_DATABASE_TEST);"
-	@echo "$(GREEN)Test database dropped$(NC)"
-
-test-db-reset: ## Reset test database with migrations
-	@echo "$(GREEN)Resetting test database...$(NC)"
-	@make test-db-drop
-	@make test-db-create
-	$(DC_EXEC) php-fpm php artisan migrate --database=pgsql --env=testing
-	@echo "$(GREEN)Test database ready$(NC)"
 
 # =============================================================================
 # Code Quality
@@ -259,9 +231,9 @@ permissions-fix: ## Fix storage and cache permissions
 # Installation
 # =============================================================================
 
-install: build up composer-install pnpm-install key-generate migrate storage-link permissions ## Full project installation
+install: build up sqlite-init composer-install pnpm-install key-generate migrate storage-link permissions ## Full project installation
 
-fresh-install: build up composer-install pnpm-install key-generate migrate-fresh-seed storage-link permissions ## Fresh install with database reset
+fresh-install: build up sqlite-init composer-install pnpm-install key-generate migrate-fresh-seed storage-link permissions ## Fresh install with database reset
 
 # =============================================================================
 # Cleanup
@@ -281,42 +253,12 @@ clean-all: ## Remove everything including images (DELETES DATA!)
 	$(DC) down -v --rmi all
 	docker system prune -af
 
-# =============================================================================
-# Database Management
-# =============================================================================
-
-backup-db: ## Create database backup
-	@mkdir -p ./backups
-	@echo "$(GREEN)Creating database backup...$(NC)"
-	$(DC) exec -T postgres pg_dump -U $(DB_USERNAME) $(DB_DATABASE) | gzip > ./backups/backup_$(shell date +%Y%m%d_%H%M%S).sql.gz
-	@echo "$(GREEN)Backup created in ./backups/$(NC)"
-
-restore-db: ## Restore database from backup (make restore-db FILE=backup.sql.gz)
-	@if [ -z "$(FILE)" ]; then \
-		echo "$(YELLOW)Please specify file: make restore-db FILE=backup.sql.gz$(NC)"; \
-		exit 1; \
-	fi
-	@echo "$(YELLOW)WARNING: Current database will be replaced!$(NC)"
-	@echo "$(YELLOW)Press Ctrl+C to cancel or Enter to continue...$(NC)"
-	@read confirm
-	@echo "$(GREEN)Restoring database from $(FILE)...$(NC)"
-	@gunzip < $(FILE) | $(DC) exec -T postgres psql -U $(DB_USERNAME) -d $(DB_DATABASE)
-	@echo "$(GREEN)Database restored$(NC)"
-
-db-list: ## Show all databases
-	@echo "$(GREEN)Database list:$(NC)"
-	$(DC) exec postgres psql -U $(DB_USERNAME) -d postgres -c "\l"
-
 db-reset: ## Reset main database (DELETES DATA!)
 	@echo "$(YELLOW)WARNING: All database data will be deleted!$(NC)"
 	@echo "$(YELLOW)Press Ctrl+C to cancel or Enter to continue...$(NC)"
 	@read confirm
 	$(DC_EXEC) php-fpm php artisan migrate:fresh --seed
 	@echo "$(GREEN)Database reset complete$(NC)"
-
-db-schema: ## Show main database table structure
-	@echo "$(GREEN)Table structure:$(NC)"
-	$(DC) exec postgres psql -U $(DB_USERNAME) -d $(DB_DATABASE) -c "\dt"
 
 # =============================================================================
 # Monitoring
@@ -332,9 +274,6 @@ volumes: ## Show volume information
 check: ## Verify all containers are running
 	@echo "$(GREEN)Checking containers...$(NC)"
 	@$(DC) ps
-	@echo ""
-	@echo "$(GREEN)Checking database connection...$(NC)"
-	@$(DC) exec postgres pg_isready -U $(DB_USERNAME) || echo "$(YELLOW)PostgreSQL is not ready!$(NC)"
 
 stats: ## Show resource usage statistics
 	docker stats
@@ -348,7 +287,7 @@ info: ## Show project information
 	@printf "  PHP:      " && $(DC_EXEC) php-fpm php -v | head -n 1
 	@printf "  Composer: " && $(DC_EXEC) php-fpm composer --version 2>/dev/null | head -n 1
 	@printf "  Node.js:  " && $(DC) exec node node -v
-	@printf "  pnpm:     " && $(DC) exec node sh -lc 'corepack enable && pnpm -v'
+	@printf "  pnpm:     " && $(DC) exec node sh -lc 'corepack enable && corepack prepare pnpm@9 --activate && pnpm -v'
 	@echo ""
 	@echo "$(GREEN)Laravel:$(NC)"
 	@printf "  " && $(DC_EXEC) php-fpm php artisan --version

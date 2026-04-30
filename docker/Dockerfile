@@ -8,15 +8,13 @@ ARG GID=1000
 
 # Runtime dependencies (kept in final image)
 RUN apk add --no-cache \
-    bash \
     libpng \
     libjpeg-turbo \
     freetype \
     libzip \
     icu-libs \
     oniguruma \
-    sqlite-libs \
-    libpq
+    sqlite-libs
 
 # Build dependencies (removed after compilation)
 RUN apk add --no-cache --virtual .build-deps \
@@ -28,14 +26,12 @@ RUN apk add --no-cache --virtual .build-deps \
     icu-dev \
     oniguruma-dev \
     sqlite-dev \
-    postgresql-dev \
     linux-headers \
     # Configure and install PHP extensions
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
         pdo \
         pdo_sqlite \
-        pdo_pgsql \
         mbstring \
         exif \
         pcntl \
@@ -44,9 +40,6 @@ RUN apk add --no-cache --virtual .build-deps \
         zip \
         intl \
         opcache \
-    # Install Redis
-    && pecl install redis \
-    && docker-php-ext-enable redis \
     # Cleanup
     && apk del .build-deps \
     && rm -rf /tmp/pear
@@ -78,7 +71,7 @@ RUN apk add --no-cache \
     && rm -rf /tmp/pear
 
 # Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # Dev PHP config
 COPY docker/php/dev/php.ini /usr/local/etc/php/conf.d/custom.ini
@@ -103,33 +96,32 @@ CMD ["php-fpm"]
 # =============================================================================
 FROM base AS production
 
-# Only essential runtime tools
-RUN apk add --no-cache curl
-
 # Install Composer (for dependency install during build)
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # Production PHP config
 COPY docker/php/production/php.ini /usr/local/etc/php/conf.d/custom.ini
 
-# Create log directory
-RUN mkdir -p /var/log/php && chown laravel:laravel /var/log/php
+# Prepare writable directories for the unprivileged runtime user
+RUN mkdir -p /var/log/php /var/www/html \
+    && chown -R laravel:laravel /var/log/php /var/www/html
 
 # Entrypoint
 COPY --chmod=755 docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 
+USER laravel
+
+# Install production dependencies first to improve layer reuse
+COPY --chown=laravel:laravel composer.json composer.lock ./
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress --no-cache --no-scripts
+
 # Copy application files
 COPY --chown=laravel:laravel . .
 
-# Create directories
+# Create directories and finalize autoload metadata
 RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache database \
-    && chown -R laravel:laravel storage bootstrap/cache database
-
-USER laravel
-
-# Install production dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress --no-cache || true \
-    && rm -rf ~/.composer/cache
+    && chown -R laravel:laravel storage bootstrap/cache database \
+    && composer dump-autoload --no-dev --optimize --classmap-authoritative
 
 EXPOSE 9000
 
