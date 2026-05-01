@@ -1,5 +1,11 @@
-.PHONY: help build up down restart logs shell composer pnpm artisan migrate seed test \
-        lint ci permissions clean install fresh-install volumes ps info tinker sqlite-init
+.PHONY: help build up down restart ps shell shell-root logs logs-php logs-nginx logs-node \
+	composer composer-install composer-update composer-require composer-dump \
+	pnpm pnpm-install pnpm-dev pnpm-build artisan tinker \
+	sqlite-init migrate migrate-rollback migrate-fresh migrate-fresh-seed seed \
+	test test-coverage test-filter lint lint-fix stan deptrac qa \
+	cache-clear optimize optimize-clear key-generate storage-link \
+	queue-work queue-listen queue-restart permissions permissions-fix \
+	install fresh-install clean clean-all db-reset volumes check stats info
 .DEFAULT_GOAL := help
 
 # =============================================================================
@@ -20,6 +26,12 @@ EXEC_USER := -u $(USER_ID):$(GROUP_ID)
 DC := docker compose
 DC_EXEC := $(DC) exec $(EXEC_USER)
 DC_EXEC_ROOT := $(DC) exec -u root
+PHP_SERVICE := php-fpm
+NODE_SERVICE := node
+ARTISAN := $(DC_EXEC) $(PHP_SERVICE) php artisan
+COMPOSER_RUN := $(DC_EXEC) $(PHP_SERVICE) composer
+PNPM_SHELL := $(DC) exec $(NODE_SERVICE) sh -lc
+PNPM_BOOTSTRAP := corepack enable && corepack prepare pnpm@9 --activate &&
 
 PROJECT := $(shell basename "$(CURDIR)" | tr '[:upper:]' '[:lower:]')
 
@@ -55,10 +67,10 @@ ps: ## Show container status
 	$(DC) ps
 
 shell: ## Open PHP container shell (as laravel user)
-	$(DC_EXEC) php-fpm sh
+	$(DC_EXEC) $(PHP_SERVICE) sh
 
 shell-root: ## Open PHP container shell (as root)
-	$(DC_EXEC_ROOT) php-fpm sh
+	$(DC_EXEC_ROOT) $(PHP_SERVICE) sh
 
 # =============================================================================
 # Logs
@@ -68,58 +80,58 @@ logs: ## Show all container logs
 	$(DC) logs -f
 
 logs-php: ## Show PHP logs
-	$(DC) logs -f php-fpm
+	$(DC) logs -f $(PHP_SERVICE)
 
 logs-nginx: ## Show Nginx logs
 	$(DC) logs -f nginx
 
 logs-node: ## Show Node logs
-	$(DC) logs -f node
+	$(DC) logs -f $(NODE_SERVICE)
 
 # =============================================================================
 # Composer
 # =============================================================================
 
 composer: ## Run Composer command (make composer CMD="install")
-	$(DC_EXEC) php-fpm composer $(CMD)
+	$(COMPOSER_RUN) $(CMD)
 
 composer-install: ## Install PHP dependencies
-	$(DC_EXEC) php-fpm composer install
+	$(COMPOSER_RUN) install
 
 composer-update: ## Update PHP dependencies
-	$(DC_EXEC) php-fpm composer update
+	$(COMPOSER_RUN) update
 
 composer-require: ## Require package (make composer-require PKG="vendor/package")
-	$(DC_EXEC) php-fpm composer require $(PKG)
+	$(COMPOSER_RUN) require $(PKG)
 
 composer-dump: ## Regenerate autoload files
-	$(DC_EXEC) php-fpm composer dump-autoload
+	$(COMPOSER_RUN) dump-autoload
 
 # =============================================================================
 # PNPM
 # =============================================================================
 
 pnpm: ## Run PNPM command (make pnpm CMD="install")
-	$(DC) exec node sh -lc 'corepack enable && corepack prepare pnpm@9 --activate && pnpm $(CMD)'
+	$(PNPM_SHELL) '$(PNPM_BOOTSTRAP) pnpm $(CMD)'
 
 pnpm-install: ## Install Node dependencies
-	$(DC) exec node sh -lc 'corepack enable && corepack prepare pnpm@9 --activate && pnpm install --frozen-lockfile'
+	$(PNPM_SHELL) '$(PNPM_BOOTSTRAP) pnpm install --frozen-lockfile'
 
 pnpm-dev: ## Start Vite dev server
-	$(DC) exec node sh -lc 'corepack enable && corepack prepare pnpm@9 --activate && pnpm run dev'
+	$(PNPM_SHELL) '$(PNPM_BOOTSTRAP) pnpm run dev'
 
 pnpm-build: ## Build production assets
-	$(DC) exec node sh -lc 'corepack enable && corepack prepare pnpm@9 --activate && pnpm run build'
+	$(PNPM_SHELL) '$(PNPM_BOOTSTRAP) pnpm run build'
 
 # =============================================================================
 # Artisan
 # =============================================================================
 
 artisan: ## Run Artisan command (make artisan CMD="migrate")
-	$(DC_EXEC) php-fpm php artisan $(CMD)
+	$(ARTISAN) $(CMD)
 
 tinker: ## Start Tinker REPL
-	$(DC_EXEC) php-fpm php artisan tinker
+	$(ARTISAN) tinker
 
 # =============================================================================
 # Migrations & Seeders
@@ -127,21 +139,21 @@ tinker: ## Start Tinker REPL
 
 migrate: ## Run migrations
 	@$(MAKE) sqlite-init
-	$(DC_EXEC) php-fpm php artisan migrate
+	$(ARTISAN) migrate
 
 migrate-rollback: ## Rollback last migration
-	$(DC_EXEC) php-fpm php artisan migrate:rollback
+	$(ARTISAN) migrate:rollback
 
 migrate-fresh: ## Drop all tables and re-run migrations
 	@$(MAKE) sqlite-init
-	$(DC_EXEC) php-fpm php artisan migrate:fresh
+	$(ARTISAN) migrate:fresh
 
 migrate-fresh-seed: ## Drop all tables, re-run migrations and seeders
 	@$(MAKE) sqlite-init
-	$(DC_EXEC) php-fpm php artisan migrate:fresh --seed
+	$(ARTISAN) migrate:fresh --seed
 
 seed: ## Run seeders
-	$(DC_EXEC) php-fpm php artisan db:seed
+	$(ARTISAN) db:seed
 
 # =============================================================================
 # Testing
@@ -149,83 +161,83 @@ seed: ## Run seeders
 
 test: ## Run tests
 	@$(MAKE) sqlite-init
-	$(DC_EXEC) php-fpm php artisan test
+	$(ARTISAN) test
 
 test-coverage: ## Run tests with coverage
 	@$(MAKE) sqlite-init
-	$(DC_EXEC) php-fpm php artisan test --coverage
+	$(ARTISAN) test --coverage
 
 test-filter: ## Run specific test (make test-filter FILTER="TestName")
 	@$(MAKE) sqlite-init
-	$(DC_EXEC) php-fpm php artisan test --filter=$(FILTER)
+	$(ARTISAN) test --filter=$(FILTER)
 
 # =============================================================================
 # Code Quality
 # =============================================================================
 
 lint: ## Check code style (Laravel Pint)
-	$(DC_EXEC) php-fpm ./vendor/bin/pint --test
+	$(DC_EXEC) $(PHP_SERVICE) ./vendor/bin/pint --test
 
 lint-fix: ## Fix code style (Laravel Pint)
-	$(DC_EXEC) php-fpm ./vendor/bin/pint
+	$(DC_EXEC) $(PHP_SERVICE) ./vendor/bin/pint
 
 stan: ## Run static analysis (PHPStan)
-	$(DC_EXEC) php-fpm ./vendor/bin/phpstan analyse --memory-limit=2G
+	$(DC_EXEC) $(PHP_SERVICE) ./vendor/bin/phpstan analyse --memory-limit=2G
 
 deptrac: ## Check architecture rules (Deptrac)
-	$(DC_EXEC) php-fpm ./vendor/bin/deptrac analyse
+	$(DC_EXEC) $(PHP_SERVICE) ./vendor/bin/deptrac analyse
 
-ci: lint deptrac stan test ## Run all checks before push
+qa: lint deptrac stan test ## Run all checks before push
 
 # =============================================================================
 # Cache & Optimization
 # =============================================================================
 
 cache-clear: ## Clear all caches
-	$(DC_EXEC) php-fpm php artisan cache:clear
-	$(DC_EXEC) php-fpm php artisan config:clear
-	$(DC_EXEC) php-fpm php artisan route:clear
-	$(DC_EXEC) php-fpm php artisan view:clear
+	$(ARTISAN) cache:clear
+	$(ARTISAN) config:clear
+	$(ARTISAN) route:clear
+	$(ARTISAN) view:clear
 
 optimize: ## Optimize application
-	$(DC_EXEC) php-fpm php artisan config:cache
-	$(DC_EXEC) php-fpm php artisan route:cache
-	$(DC_EXEC) php-fpm php artisan view:cache
+	$(ARTISAN) config:cache
+	$(ARTISAN) route:cache
+	$(ARTISAN) view:cache
 
 optimize-clear: ## Clear optimization cache
-	$(DC_EXEC) php-fpm php artisan optimize:clear
+	$(ARTISAN) optimize:clear
 
 # =============================================================================
 # Laravel Utilities
 # =============================================================================
 
 key-generate: ## Generate application key
-	$(DC_EXEC) php-fpm php artisan key:generate
+	$(ARTISAN) key:generate
 
 storage-link: ## Create storage symlink
-	$(DC_EXEC) php-fpm php artisan storage:link
+	$(ARTISAN) storage:link
 
 queue-work: ## Start queue worker
-	$(DC_EXEC) php-fpm php artisan queue:work
+	$(ARTISAN) queue:work
 
 queue-listen: ## Start queue listener
-	$(DC_EXEC) php-fpm php artisan queue:listen
+	$(ARTISAN) queue:listen
 
 queue-restart: ## Restart queue workers
-	$(DC_EXEC) php-fpm php artisan queue:restart
+	$(ARTISAN) queue:restart
 
 # =============================================================================
 # Permissions
 # =============================================================================
 
 permissions: ## Set file permissions (runs as root)
-	$(DC_EXEC_ROOT) php-fpm chown -R $(USER_ID):$(GROUP_ID) /var/www/html
-	$(DC_EXEC_ROOT) php-fpm chmod -R 755 /var/www/html/storage
-	$(DC_EXEC_ROOT) php-fpm chmod -R 755 /var/www/html/bootstrap/cache
+	$(DC_EXEC_ROOT) $(PHP_SERVICE) chown -R $(USER_ID):$(GROUP_ID) /var/www/html
+	$(DC_EXEC_ROOT) $(PHP_SERVICE) chmod -R 755 /var/www/html/storage
+	$(DC_EXEC_ROOT) $(PHP_SERVICE) chmod -R 755 /var/www/html/bootstrap/cache
 
 permissions-fix: ## Fix storage and cache permissions
-	$(DC_EXEC_ROOT) php-fpm chown -R $(USER_ID):$(GROUP_ID) /var/www/html/storage /var/www/html/bootstrap/cache
-	$(DC_EXEC_ROOT) php-fpm chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+	$(DC_EXEC_ROOT) $(PHP_SERVICE) chown -R $(USER_ID):$(GROUP_ID) /var/www/html/storage /var/www/html/bootstrap/cache
+	$(DC_EXEC_ROOT) $(PHP_SERVICE) chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # =============================================================================
 # Installation
@@ -257,7 +269,7 @@ db-reset: ## Reset main database (DELETES DATA!)
 	@echo "$(YELLOW)WARNING: All database data will be deleted!$(NC)"
 	@echo "$(YELLOW)Press Ctrl+C to cancel or Enter to continue...$(NC)"
 	@read confirm
-	$(DC_EXEC) php-fpm php artisan migrate:fresh --seed
+	$(ARTISAN) migrate:fresh --seed
 	@echo "$(GREEN)Database reset complete$(NC)"
 
 # =============================================================================
@@ -284,10 +296,10 @@ info: ## Show project information
 	@echo "  GROUP_ID: $(GROUP_ID)"
 	@echo ""
 	@echo "$(GREEN)Versions:$(NC)"
-	@printf "  PHP:      " && $(DC_EXEC) php-fpm php -v | head -n 1
-	@printf "  Composer: " && $(DC_EXEC) php-fpm composer --version 2>/dev/null | head -n 1
-	@printf "  Node.js:  " && $(DC) exec node node -v
-	@printf "  pnpm:     " && $(DC) exec node sh -lc 'corepack enable && corepack prepare pnpm@9 --activate && pnpm -v'
+	@printf "  PHP:      " && $(DC_EXEC) $(PHP_SERVICE) php -v | head -n 1
+	@printf "  Composer: " && $(COMPOSER_RUN) --version 2>/dev/null | head -n 1
+	@printf "  Node.js:  " && $(DC) exec $(NODE_SERVICE) node -v
+	@printf "  pnpm:     " && $(PNPM_SHELL) '$(PNPM_BOOTSTRAP) pnpm -v'
 	@echo ""
 	@echo "$(GREEN)Laravel:$(NC)"
-	@printf "  " && $(DC_EXEC) php-fpm php artisan --version
+	@printf "  " && $(ARTISAN) --version
