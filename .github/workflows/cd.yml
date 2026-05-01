@@ -51,12 +51,13 @@ jobs:
             if [ -d "$DEPLOY_DIR/.git" ]; then
               echo "Updating repository..."
               cd "$DEPLOY_DIR"
-              git fetch origin main
+              git fetch --force --tags origin main
               git reset --hard origin/main
             else
               echo "Cloning repository..."
               git clone --depth 1 "$REPO_URL" "$DEPLOY_DIR"
               cd "$DEPLOY_DIR"
+              git fetch --force --tags origin
             fi
 
             # Restore app.env
@@ -68,11 +69,17 @@ jobs:
 
             # Determine version to deploy
             # For workflow_dispatch: use input version
-            # For workflow_run (after Build Images): use the tag from the triggering workflow
+            # For workflow_run (after Build Images): resolve tag by triggering commit SHA
             if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
               VERSION="${{ github.event.inputs.version }}"
             else
-              VERSION="${{ github.event.workflow_run.head_branch }}"
+              WORKFLOW_HEAD_SHA="${{ github.event.workflow_run.head_sha }}"
+              VERSION="$(git tag --points-at "$WORKFLOW_HEAD_SHA" | sed -n '1p' || true)"
+
+              if [ -z "$VERSION" ]; then
+                echo "No git tag found for commit $WORKFLOW_HEAD_SHA. Falling back to latest."
+                VERSION="latest"
+              fi
             fi
 
             if [ "$VERSION" = "latest" ] || [ -z "$VERSION" ]; then
