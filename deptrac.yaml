@@ -26,19 +26,31 @@ deptrac:
           value: src/[^/]+\.php$
           regex: true
 
-    # Infrastructure Layer - Laravel, database, external services
+    # Infrastructure Layer - Laravel adapters
     - name: Infrastructure
       collectors:
         - type: directory
           value: app/.*
 
-    # Laravel Framework (Illuminate + Laravel packages)
+    # Laravel Framework
     - name: LaravelFramework
       collectors:
         - type: classNameRegex
           value: '#^Illuminate\\.*#'
         - type: classNameRegex
           value: '#^Laravel\\.*#'
+
+    # 👇 НОВОЕ: Symfony (Laravel на нём построен)
+    - name: Symfony
+      collectors:
+        - type: classNameRegex
+          value: '#^Symfony\\.*#'
+
+    # 👇 (опционально, но полезно)
+    - name: Psr
+      collectors:
+        - type: classNameRegex
+          value: '#^Psr\\.*#'
 
   ruleset:
     # Domain has no dependencies
@@ -51,11 +63,15 @@ deptrac:
     # SrcRoot should not use anything (red flag)
     SrcRoot: []
 
-    # Infrastructure can depend on Application, Domain and Laravel
+    # Infrastructure can depend on everything внешнее
     Infrastructure:
       - Application
       - Domain
       - LaravelFramework
+      - Symfony
+      - Psr
 
-    # Laravel can only be used by Infrastructure
+    # Framework слои изолированы
     LaravelFramework: []
+    Symfony: []
+    Psr: []
