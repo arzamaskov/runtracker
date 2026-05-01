@@ -4,7 +4,7 @@ includes:
 parameters:
     paths:
         - app
-#        - src
+        - src
 
     # Уровень строгости: 0–9 (чем выше, тем строже)
     level: 5

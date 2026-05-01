@@ -11,13 +11,13 @@ deptrac:
     - name: Domain
       collectors:
         - type: directory
-          value: src/Domain/.*
+          value: src/.*/Domain/.*
 
     # Application Layer - use cases, application services
     - name: Application
       collectors:
         - type: directory
-          value: src/Application/.*
+          value: src/.*/Application/.*
 
     # Catch-all for files directly in src/ (should not exist)
     - name: SrcRoot
