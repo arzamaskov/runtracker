@@ -65,15 +65,15 @@
                         @csrf
 
                         <div>
-                            <label for="email" class="block text-xs font-medium text-gray-600 mb-1.5">Email</label>
+                            <label for="login" class="block text-xs font-medium text-gray-600 mb-1.5">Логин</label>
                             <input
-                                type="email"
-                                name="email"
-                                id="email"
+                                type="text"
+                                name="login"
+                                id="login"
                                 required
-                                autocomplete="email"
+                                autocomplete="username"
                                 class="block w-full rounded-md border border-gray-200 px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900 sm:text-sm transition-colors"
-                                placeholder="mail@example.com"
+                                placeholder="user name"
                             >
                         </div>
 
