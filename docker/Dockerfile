@@ -74,8 +74,8 @@ RUN apk add --no-cache \
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # Dev PHP config
-COPY docker/php/dev/php.ini /usr/local/etc/php/conf.d/custom.ini
-COPY docker/php/xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
+COPY --chmod=644 docker/php/dev/php.ini /usr/local/etc/php/conf.d/custom.ini
+COPY --chmod=644 docker/php/xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
 
 # Entrypoint
 COPY --chmod=755 docker/entrypoint.sh /usr/local/bin/entrypoint.sh
